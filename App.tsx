@@ -1,7 +1,7 @@
 import AddModal from './components/AddModal'
 import { useEffect, useRef, useState } from 'react'
-import { load } from './utils/storage'
-import { Image, KeyboardAvoidingView, LayoutAnimation, Platform, SectionList, StyleSheet, Text, TouchableOpacity, UIManager, View } from 'react-native'
+import { load, save } from './utils/storage'
+import { Alert, Image, KeyboardAvoidingView, LayoutAnimation, Platform, SectionList, StyleSheet, Text, TouchableOpacity, UIManager, View } from 'react-native'
 import { Account } from './types/Account'
 
 type renderType = () => JSX.Element
@@ -42,7 +42,8 @@ export default function App() {
       }
     }
   }, [])
-  useEffect(() => {
+
+  const loadData = () => {
     load('accountList').then((data: any) => {
       const accountList: Account[] = JSON.parse(data)
 
@@ -57,9 +58,12 @@ export default function App() {
         { type: '银行卡', data: bankList },
         { type: '其他', data: otherList },
       ]
-
+      LayoutAnimation.easeInEaseOut()
       setData(sectionListData)
     })
+  }
+  useEffect(() => {
+    loadData()
   }, [data])
   const renderTitle: renderType = () => (
     <View style={styles.titleLayout}>
@@ -109,10 +113,27 @@ export default function App() {
     if (!sectionState[item.type]) {
       return null
     }
+    const deleteAccount = (id: string) => {
+      load('accountList').then((data: any) => {
+        const accountList: Account[] = JSON.parse(data)
+        const index = accountList.findIndex((item) => item.id === id)
+        accountList.splice(index, 1)
+        save('accountList', JSON.stringify(accountList)).then(() => {
+          loadData()
+        })
+      })
+    }
     return (
       <TouchableOpacity
         onPress={() => {
           addModalRef.current?.show(item)
+        }}
+        onLongPress={() => {
+          const buttons = [
+            { text: '取消', onPress: () => {} },
+            { text: '确定', onPress: () => deleteAccount(item.id) },
+          ]
+          Alert.alert('提示', `是否删除「${item.account}」账号？`, buttons)
         }}
         style={styles.itemLayout}
       >
