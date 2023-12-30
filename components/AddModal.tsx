@@ -11,8 +11,22 @@ const AddModal = forwardRef((props, ref) => {
   const [accountName, setAccountName] = useState<string>('')
   const [account, setAccount] = useState<string>('')
   const [password, setPassword] = useState<string>('')
+  const [isModify, setIsModify] = useState<boolean>(false)
+  const [currentItem, setCurrentItem] = useState<Account>()
 
-  const show = () => {
+  const show = (currentItem: Account) => {
+    if (currentItem) {
+      setIsModify(true)
+      setAccountName(currentItem.accountName)
+      setAccount(currentItem.account)
+      setPassword(currentItem.password)
+      setCurrentItem(currentItem)
+    } else {
+      setIsModify(false)
+      setAccountName('')
+      setAccount('')
+      setPassword('')
+    }
     setIsVisible(true)
   }
 
@@ -22,7 +36,7 @@ const AddModal = forwardRef((props, ref) => {
       return
     }
     const accountDetail: Account = {
-      id: getUUID(),
+      id: isModify ? currentItem?.id! : getUUID(),
       type: typeArray[typeIndex],
       accountName,
       account,
@@ -30,7 +44,12 @@ const AddModal = forwardRef((props, ref) => {
     }
     load('accountList').then((data: any) => {
       const accountList: Account[] = data ? JSON.parse(data) : []
-      accountList.push(accountDetail)
+      if (isModify) {
+        const index = accountList.findIndex((item) => item.id === currentItem?.id)
+        accountList.splice(index, 1, accountDetail)
+      } else {
+        accountList.push(accountDetail)
+      }
       save('accountList', JSON.stringify(accountList)).then(() => {
         hide()
       })
@@ -73,7 +92,7 @@ const AddModal = forwardRef((props, ref) => {
     })
     return (
       <View style={styles.titleLayout}>
-        <Text style={styles.titleTxt}>添加账号</Text>
+        <Text style={styles.titleTxt}>{isModify ? '修改账号' : '添加账号'}</Text>
         <TouchableOpacity style={styles.closeButton} onPress={hide}>
           <Image style={styles.closeImg} source={require('../assets/close.png')} />
         </TouchableOpacity>

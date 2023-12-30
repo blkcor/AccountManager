@@ -7,7 +7,7 @@ import { Account } from './types/Account'
 type renderType = () => JSX.Element
 
 type refProp = {
-  show: () => void
+  show: (currentItem: any) => void
   hide: () => void
 }
 
@@ -110,13 +110,18 @@ export default function App() {
       return null
     }
     return (
-      <View style={styles.itemLayout}>
+      <TouchableOpacity
+        onPress={() => {
+          addModalRef.current?.show(item)
+        }}
+        style={styles.itemLayout}
+      >
         <Text style={styles.accountNameTxt}>{item.accountName}</Text>
         <View style={styles.accountPwd}>
           <Text style={styles.accountPwdTxt}>账号: {item.account}</Text>
           <Text style={styles.accountPwdTxt}>密码: {item.password}</Text>
         </View>
-      </View>
+      </TouchableOpacity>
     )
   }
   return (
@@ -124,7 +129,7 @@ export default function App() {
       {renderTitle()}
 
       <SectionList sections={data} keyExtractor={(item) => item.id} renderItem={renderSectionItem} renderSectionHeader={renderSectionHeader} contentContainerStyle={styles.listContainer} />
-      <TouchableOpacity style={styles.addButton} activeOpacity={0.4} onPress={() => addModalRef.current?.show()}>
+      <TouchableOpacity style={styles.addButton} activeOpacity={0.4} onPress={() => addModalRef.current?.show(null)}>
         <Image style={styles.addImg} source={require('./assets/add.png')} />
       </TouchableOpacity>
       <AddModal ref={addModalRef} />
