@@ -1,7 +1,7 @@
 import AddModal from './components/AddModal'
 import { useEffect, useRef, useState } from 'react'
 import { load, save } from './utils/storage'
-import { Alert, Image, KeyboardAvoidingView, LayoutAnimation, Platform, SectionList, StyleSheet, Text, TouchableOpacity, UIManager, View } from 'react-native'
+import { Alert, Image, KeyboardAvoidingView, LayoutAnimation, Platform, SectionList, StyleSheet, Switch, Text, TouchableOpacity, UIManager, View } from 'react-native'
 import { Account } from './types/Account'
 
 type renderType = () => JSX.Element
@@ -33,7 +33,7 @@ export default function App() {
     银行卡: false,
     其他: false,
   })
-
+  const [passwordOpen, setPasswordOpen] = useState<boolean>(false)
   useEffect(() => {
     //enable layout animation
     if (Platform.OS === 'android') {
@@ -68,6 +68,14 @@ export default function App() {
   const renderTitle: renderType = () => (
     <View style={styles.titleLayout}>
       <Text style={styles.titleTxt}>账号管理</Text>
+      <Switch
+        style={styles.switch}
+        value={passwordOpen}
+        onChange={() => {
+          LayoutAnimation.easeInEaseOut()
+          setPasswordOpen((prev) => !prev)
+        }}
+      />
     </View>
   )
 
@@ -140,7 +148,7 @@ export default function App() {
         <Text style={styles.accountNameTxt}>{item.accountName}</Text>
         <View style={styles.accountPwd}>
           <Text style={styles.accountPwdTxt}>账号: {item.account}</Text>
-          <Text style={styles.accountPwdTxt}>密码: {item.password}</Text>
+          <Text style={styles.accountPwdTxt}>密码: {passwordOpen ? item.password : '********'}</Text>
         </View>
       </TouchableOpacity>
     )
@@ -175,6 +183,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
+    flexDirection: 'row',
+  },
+  switch: {
+    position: 'absolute',
+    right: 16,
   },
   titleTxt: {
     fontSize: 16,
