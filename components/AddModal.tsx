@@ -1,7 +1,11 @@
 import React, { useImperativeHandle, forwardRef, useState } from 'react'
-import { Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView } from 'react-native'
+import { getUUID } from '../utils/UUID'
+import { Account } from '../types/Account'
+import { save, load, remove } from '../utils/storage'
 
 const AddModal = forwardRef((props, ref) => {
+  const typeArray = ['游戏', '平台', '银行卡', '其他']
   const [isVisible, setIsVisible] = useState(false)
   const [typeIndex, setTypeIndex] = useState(0)
   const [accountName, setAccountName] = useState<string>('')
@@ -10,6 +14,27 @@ const AddModal = forwardRef((props, ref) => {
 
   const show = () => {
     setIsVisible(true)
+  }
+
+  const handleSave = () => {
+    if (!accountName || !account || !password) {
+      alert('请填写完整信息')
+      return
+    }
+    const accountDetail: Account = {
+      id: getUUID(),
+      type: typeArray[typeIndex],
+      accountName,
+      account,
+      password,
+    }
+    load('accountList').then((data: any) => {
+      const accountList: Account[] = data ? JSON.parse(data) : []
+      accountList.push(accountDetail)
+      save('accountList', JSON.stringify(accountList)).then(() => {
+        hide()
+      })
+    })
   }
 
   const hide = () => {
@@ -49,19 +74,13 @@ const AddModal = forwardRef((props, ref) => {
     return (
       <View style={styles.titleLayout}>
         <Text style={styles.titleTxt}>添加账号</Text>
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={() => {
-            setIsVisible(false)
-          }}
-        >
+        <TouchableOpacity style={styles.closeButton} onPress={hide}>
           <Image style={styles.closeImg} source={require('../assets/close.png')} />
         </TouchableOpacity>
       </View>
     )
   }
 
-  const typeArray = ['游戏', '平台', '银行卡', '其他']
   const renderType = () => {
     const styles = StyleSheet.create({
       typeLayout: {
@@ -157,9 +176,10 @@ const AddModal = forwardRef((props, ref) => {
     })
     return <TextInput maxLength={20} value={password} onChangeText={(text: string) => setPassword(text)} style={styles.input} />
   }
+
   return (
     <Modal visible={isVisible} transparent={true} onRequestClose={hide} animationType="fade" statusBarTranslucent={true}>
-      <View style={styles.root}>
+      <KeyboardAvoidingView behavior="padding" style={styles.root}>
         <View style={styles.content}>
           {renderTitle()}
           <Text style={styles.subTitleTxt}>账号类型</Text>
@@ -170,11 +190,11 @@ const AddModal = forwardRef((props, ref) => {
           {renderAccount()}
           <Text style={styles.subTitleTxt}>密码</Text>
           {renderPassword()}
-          <TouchableOpacity style={styles.saveButton} activeOpacity={0.6}>
+          <TouchableOpacity style={styles.saveButton} activeOpacity={0.6} onPress={handleSave}>
             <Text style={styles.saveTxt}>保存</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   )
 })
